@@ -182,7 +182,7 @@ def get_binary_img(img):
     img[img<255] = 0
     
     img = cv2.bitwise_not(img)#change black to white
-    img = fix_borders(img, 1/25, 0.2)#crop borders
+    img = fix_borders(img, 1/30, 0.2)#crop borders
     img = resize_img_padding(img)#resize de img to 495x495
     
     

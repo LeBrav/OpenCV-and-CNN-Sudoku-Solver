@@ -6,7 +6,7 @@ if __name__ == "__main__":
     pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR\tesseract'
     model1 = load_model('models/digit_deta.h5') 
     model2 = load_model('models/mnist_model_toxo.h5') 
-    name = "digital (1)"
+    name = "ma2"
     #######################################################################
     
     #read the image########################################################

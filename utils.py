@@ -35,6 +35,8 @@ from tensorflow.keras.callbacks import ReduceLROnPlateau
 import pandas as pd
 import math
 
+
+
 #used to add pad in an image
 def pad_with(vector, pad_width, iaxis, kwargs):  
     padding_value = kwargs.get('padder', 255)  
@@ -209,6 +211,47 @@ def get_binary_img(img):
     img = cv2.bitwise_not(img)
     return img
 
+#do a basic binarize of the original image to find the contours better
+def basic_binarize(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.GaussianBlur(img, (3, 3), 1)
+    img = cv2.adaptiveThreshold(img, 255, 1, 1, 11, 2)
+    return img
+
+#explore all the contours and find the biggest one that is the sudoku and returns
+# the 4 points that form this contours for the warp
+def SudokuPoints(contours):
+    biggest = np.array([])
+    max_area = 0
+    for i in contours:
+        area = cv2.contourArea(i)
+        if area > 50:
+            peri = cv2.arcLength(i, True)
+            approx = cv2.approxPolyDP(i, 0.02 * peri, True)
+            if area > max_area and len(approx) == 4:
+                biggest = approx
+                max_area = area
+    
+    #reorder the points that form the biggest contour
+    biggest = biggest.reshape((4, 2))
+    biggestN = np.zeros((4, 1, 2), dtype=np.int32)
+    add = biggest.sum(1)
+    biggestN[0] = biggest[np.argmin(add)]
+    biggestN[3] =biggest[np.argmax(add)]
+    diff = np.diff(biggest, axis=1)
+    biggestN[1] =biggest[np.argmin(diff)]
+    biggestN[2] = biggest[np.argmax(diff)]
+    return biggestN
+
+#crop a some pixels the contours image to avoid errors
+def crop_sides(img, n_pixels):
+    img = np.delete(img, range(n_pixels), axis = 0)
+    img = np.delete(img, range(img.shape[0]-n_pixels, img.shape[0]), axis = 0)
+    img = np.delete(img, range(n_pixels), axis = 1)
+    img = np.delete(img, range(img.shape[1]-n_pixels, img.shape[1]), axis = 1)
+    
+    return img
+
 #divide the processed img into boxes (sudoku's cells)
 def splitBoxes(img):
     rows = np.vsplit(img,9)
@@ -347,7 +390,7 @@ def plot_boxes(boxes_np, name):
         fig.add_subplot(rows, columns, i)
         plt.axis('off')
         plt.imshow(img)
-    plt.savefig('results/' +name + '/'+'3_plot_boxes.png', dpi=300, bbox_inches='tight')
+    plt.savefig('results/' +name + '/'+'4_plot_boxes.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 #this function plots the result sudoku prediction of the models, and its confidence
@@ -380,7 +423,7 @@ def plot_prob(boxes_prob, numbers, name):
         plt.gca().axes.get_xaxis().set_visible(False)
         plt.gca().axes.get_yaxis().set_visible(False)
     
-    plt.savefig('results/' +name + '/'+ '4_plot_prob.png', dpi=300, bbox_inches='tight')
+    plt.savefig('results/' +name + '/'+ '5_plot_prob.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -395,15 +438,15 @@ def Predict(model1, model2, boxes_np, boxes, custom_config):
         predict_prob = max(prediction[i])
         predict_prob2 = max(prediction2[i])
         #######tesseract#######
-        string = pytesseract.image_to_data(box, config=custom_config, output_type='data.frame')
-        aux =string['conf'].to_numpy()
+        DataFrame = pytesseract.image_to_data(box, config=custom_config, output_type='data.frame')
+        aux = DataFrame['conf'].to_numpy()
         argmax = np.argmax(aux)
-        predict_prob3 = string['conf'][argmax]
+        predict_prob3 = DataFrame['conf'][argmax]
         predict_prob3 = predict_prob3/100
         ##########################
         predict_prob = max(predict_prob, predict_prob2, predict_prob3)
         #print(predict_prob, predict_prob2, predict_prob3)
-        #print(np.argmax(prediction[i]),np.argmax(prediction2[i]), string['text'][argmax])
+        #print(np.argmax(prediction[i]),np.argmax(prediction2[i]), DataFrame['text'][argmax])
         if predict_prob < 0.50:
             numbers.append(0)
             boxes_prob.append(-1)
@@ -414,7 +457,7 @@ def Predict(model1, model2, boxes_np, boxes, custom_config):
                 if predict_prob == predict_prob2:
                     numbers.append(np.argmax(prediction2[i]))
                 else:
-                    numbers.append(int(string['text'][argmax]))
+                    numbers.append(int(DataFrame['text'][argmax]))
                     
             boxes_prob.append(predict_prob)
     

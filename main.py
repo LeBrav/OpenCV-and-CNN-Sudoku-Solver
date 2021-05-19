@@ -12,7 +12,7 @@ if __name__ == "__main__":
     #read the image########################################################
     img = cv2.imread('figs/' + name + '.png', 1)
     imgC = img.copy()
-    imgC = cv2.resize(img, (495, 495))
+    imgOriginal = img.copy()
     plt.imshow(cv2.cvtColor(imgC, cv2.COLOR_BGR2RGB)), plt.axis('off'), plt.title("Img Input")
     if not os.path.exists('results/' + name):
         os.mkdir('results/' + name)
@@ -33,14 +33,14 @@ if __name__ == "__main__":
     #print(SudokuPoints) #print the points
     
     cv2.drawContours(imgC, SudokuPoints, -1, (0, 0, 255), 25) #draw in red the 4 points that form the sudoku
-    plt.imshow(cv2.cvtColor(imgC, cv2.COLOR_BGR2RGB)), plt.title("Img biggest contour")
+    plt.imshow(cv2.cvtColor(imgC, cv2.COLOR_BGR2RGB)), plt.axis('off'),plt.title("Img biggest contour")
     plt.savefig('results/' + name + '/'+ '2_Img_biggest_contour.png', dpi=300, bbox_inches='tight'),plt.show()
 
     pointsSudoku = np.float32(SudokuPoints) 
     pointsVoid = np.float32([[0, 0],[495, 0], [0, 495],[495, 495]]) 
     matrix = cv2.getPerspectiveTransform(pointsSudoku, pointsVoid)
     imgWarpColor = cv2.warpPerspective(img, matrix, (495, 495))
-    plt.imshow(cv2.cvtColor(imgWarpColor, cv2.COLOR_BGR2RGB)), plt.title("Img warped")
+    plt.imshow(cv2.cvtColor(imgWarpColor, cv2.COLOR_BGR2RGB)), plt.axis('off'), plt.title("Img warped")
     plt.savefig('results/' + name + '/'+ '3_Img_warped.png', dpi=300, bbox_inches='tight'),plt.show()
 
     img = cv2.cvtColor(imgWarpColor,cv2.COLOR_BGR2GRAY)
@@ -105,13 +105,37 @@ if __name__ == "__main__":
     img_c[:,:,0] = img_c2
     img_c[:,:,1] = img_c2
     img_c[:,:,2] = img_c2
-    
-    img_c = overlay_solution(img_c, sudoku_solution)
+    imgVoid = np.zeros((495, 495, 3), np.uint8) #void image to warp the original to
+
+    img_c = overlay_solution(imgVoid, sudoku_solution)
     img_c = img_c.astype('uint8')
     
     plt.imshow(cv2.cvtColor(img_c, cv2.COLOR_BGR2RGB)), plt.axis('off'), plt.title("Img result")
     plt.savefig('results/' + name + '/'+'8_img_result.png', dpi=300, bbox_inches='tight'),plt.show()
             
+    
+    pointsSudoku = np.float32(SudokuPoints) 
+    pointsImg = np.float32([[0, 0],[495, 0], [0, 495],[495, 495]]) 
+    matrix = cv2.getPerspectiveTransform(pointsImg, pointsSudoku)
+    imgOut = cv2.warpPerspective(img_c, matrix, (imgOriginal.shape[1], imgOriginal.shape[0]))
+    
+    '''
+    imgVoidOut = cv2.cvtColor(imgOut, cv2.COLOR_BGR2GRAY)
+    imgVoidOut[imgVoidOut > 0] = 255
+    '''
+    imgaux = np.zeros((imgOut.shape[0],imgOut.shape[1],3), np.uint8)
+    imgaux[:,:,0] = imgOut[:,:,1]
+    imgaux[:,:,1] = imgOut[:,:,1]
+    imgaux[:,:,2] = imgOut[:,:,1]
+    
+       
+    imgedited = imgOriginal * cv2.bitwise_not(imgaux).astype('bool')
+    imgedited[:,:,1] = (imgaux[:,:,1]/2).astype('uint8') + imgedited[:,:,1]
+    
+    
+    plt.imshow(cv2.cvtColor(imgedited, cv2.COLOR_BGR2RGB)), plt.axis('off'), plt.title("Img output")
+    plt.savefig('results/' + name + '/'+ '9_Img_output.png', dpi=300, bbox_inches='tight'),plt.show()
+
     
     #######################################################################
     

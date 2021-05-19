@@ -214,8 +214,20 @@ def get_binary_img(img):
 #do a basic binarize of the original image to find the contours better
 def basic_binarize(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = cv2.GaussianBlur(img, (3, 3), 1)
-    img = cv2.adaptiveThreshold(img, 255, 1, 1, 11, 2)
+    img = cv2.GaussianBlur(img, (5, 5), 1)
+    img = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
+    
+
+    
+    img = 255 - img
+    #remove isolted group of pixels less than min size
+    retval, labels = cv2.connectedComponents(img)
+    img = morphology.remove_small_objects(labels, min_size=50, connectivity=2)
+    img = img.astype("uint8")
+        
+    img[img>0] = 255
+    
+    
     return img
 
 #explore all the contours and find the biggest one that is the sudoku and returns
@@ -390,7 +402,7 @@ def plot_boxes(boxes_np, name):
         fig.add_subplot(rows, columns, i)
         plt.axis('off')
         plt.imshow(img)
-    plt.savefig('results/' +name + '/'+'4_plot_boxes.png', dpi=300, bbox_inches='tight')
+    plt.savefig('results/' +name + '/'+'5_plot_boxes.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 #this function plots the result sudoku prediction of the models, and its confidence
@@ -423,7 +435,7 @@ def plot_prob(boxes_prob, numbers, name):
         plt.gca().axes.get_xaxis().set_visible(False)
         plt.gca().axes.get_yaxis().set_visible(False)
     
-    plt.savefig('results/' +name + '/'+ '5_plot_prob.png', dpi=300, bbox_inches='tight')
+    plt.savefig('results/' +name + '/'+ '6_plot_prob.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 

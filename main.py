@@ -6,11 +6,14 @@ if __name__ == "__main__":
     pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR\tesseract'
     model1 = load_model('models/digit_deta.h5') 
     model2 = load_model('models/mnist_model_toxo.h5') 
-    name = "Captura"
+    
+    type_s = "Sudokus/handwritten/19/" #handwritten  #digital_sudokus
+    name = "2"
     #######################################################################
     
     #read the image########################################################
-    img = cv2.imread('figs/' + name + '.png', 1)
+    img = cv2.imread('figs/' + type_s + name + '.png', 1)
+    #img = cv2.resize(img, (495, 495))
     imgC = img.copy()
     imgOriginal = img.copy()
     plt.imshow(cv2.cvtColor(imgC, cv2.COLOR_BGR2RGB)), plt.axis('off'), plt.title("Img Input")
@@ -22,11 +25,13 @@ if __name__ == "__main__":
     #warp the image########################################################
     imgVoid = np.zeros((495, 495, 3), np.uint8) #void image to warp the original to
     gray = basic_binarize(img) #process the input image a bit to find contours better
+    
+    #plt.imshow(cv2.cvtColor(gray, cv2.COLOR_BGR2RGB)), plt.show()
+    
     imgC = img.copy() #copy to plot
-
-    contours, hierarchy = cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #find all contours
+    contours, hierarchy = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) #find all contours
     cv2.drawContours(imgC, contours, -1, (0, 255, 0), 3) #draw all contours in green
-     
+
 
     SudokuPoints = SudokuPoints(contours) #get all the points forming contours and return the biggest one in order
     
@@ -51,7 +56,7 @@ if __name__ == "__main__":
     img_binary = get_binary_img(img)
     
     plt.imshow(cv2.cvtColor(img_binary, cv2.COLOR_BGR2RGB)), plt.axis('off'), plt.title("Img binarized")
-    plt.savefig('results/' + name + '/'+'6_binarized_img.png', dpi=300, bbox_inches='tight'),plt.show()
+    plt.savefig('results/' + name + '/'+'4_binarized_img.png', dpi=300, bbox_inches='tight'),plt.show()
     #######################################################################
     
     '''
@@ -130,7 +135,7 @@ if __name__ == "__main__":
     
        
     imgedited = imgOriginal * cv2.bitwise_not(imgaux).astype('bool')
-    imgedited[:,:,1] = (imgaux[:,:,1]/2).astype('uint8') + imgedited[:,:,1]
+    imgedited[:,:,1] = (imgaux[:,:,1]/200).astype('uint8') + imgedited[:,:,1]
     
     
     plt.imshow(cv2.cvtColor(imgedited, cv2.COLOR_BGR2RGB)), plt.axis('off'), plt.title("Img output")

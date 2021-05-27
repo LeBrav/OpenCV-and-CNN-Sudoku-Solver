@@ -8,7 +8,7 @@ if __name__ == "__main__":
     model2 = load_model('models/mnist_model_toxo.h5') 
     
     type_s = "Sudokus/handwritten/" #handwritten  #digital_sudokus
-    name = "Captura (1)"
+    name = "Captura (2)"
     #######################################################################
     
     #read the image########################################################
@@ -82,15 +82,26 @@ if __name__ == "__main__":
     #######################################################################
     
     #Predict DIGITS with TensorFlow AND TESSERACT##########################
-    boxes_prob, numbers = Predict(model1, model2, boxes_np, boxes, custom_config)
+    boxes_prob, numbers, mean_confidence_models = Predict(model1, model2, boxes_np, boxes, custom_config)
     plot_prob(boxes_prob, numbers, name)
     sudoku = np.asarray(numbers)
+    sudoku_m = sudoku.copy()
+    sudoku_m = np.reshape(sudoku_m, (9,9))
+    #######################################################################
+    
+    #GET FINAL ACCURACY and MEAN CONFIDENCE ###############################
+    
+    print('The Mean confidence obtained with the different models when predicting the digits in the sudoku is:')
+    print('Model1 - Digit_deta - Computer Digits:', mean_confidence_models[0])
+    print('Model2 - Mnist - Handwritten Digits:', mean_confidence_models[1])
+    print('Tesseract OCR', mean_confidence_models[2])
+
+    print('Accuracy obtained (Numbers well predicted / numbers to predict):', get_accuracy(name, type_s, sudoku_m))
+    
     #######################################################################
     
     
     #Solve Sudoku##########################################################
-    sudoku_m = sudoku.copy()
-    sudoku_m = np.reshape(sudoku_m, (9,9))
     
     IsThereSolution = Solve(0, sudoku);
     if IsThereSolution == False:
@@ -143,6 +154,8 @@ if __name__ == "__main__":
 
     
     #######################################################################
+    
+    
     
     
 

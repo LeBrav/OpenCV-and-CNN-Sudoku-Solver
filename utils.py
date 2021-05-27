@@ -446,6 +446,8 @@ def Predict(model1, model2, boxes_np, boxes, custom_config):
     
     numbers = []
     boxes_prob = []
+    n_predicts = 0
+    mean_confidence_models = [0,0,0]
     for i,box in enumerate(boxes):
         predict_prob = max(prediction[i])
         predict_prob2 = max(prediction2[i])
@@ -456,13 +458,21 @@ def Predict(model1, model2, boxes_np, boxes, custom_config):
         predict_prob3 = DataFrame['conf'][argmax]
         predict_prob3 = predict_prob3/100
         ##########################
+               
         predict_prob = max(predict_prob, predict_prob2, predict_prob3)
         #print(predict_prob, predict_prob2, predict_prob3)
         #print(np.argmax(prediction[i]),np.argmax(prediction2[i]), DataFrame['text'][argmax])
         if predict_prob < 0.50:
             numbers.append(0)
             boxes_prob.append(-1)
+                        
         else:
+            
+            mean_confidence_models[0] += predict_prob #model1 - digit deta (computer digits)
+            mean_confidence_models[1] += predict_prob2 #model2 - mnist (handwritten digits)
+            mean_confidence_models[2] += predict_prob3 #tesseract ocr
+            n_predicts += 1
+            
             if predict_prob == predict_prob: 
                     numbers.append(np.argmax(prediction[i]))
             else:
@@ -473,8 +483,11 @@ def Predict(model1, model2, boxes_np, boxes, custom_config):
                     
             boxes_prob.append(predict_prob)
     
-    
-    return boxes_prob, numbers
+    mean_confidence_models[0] /= n_predicts #model1 - digit deta (computer digits)
+    mean_confidence_models[1] /= n_predicts #model2 - mnist (handwritten digits)
+    mean_confidence_models[2] /= n_predicts #tesseract ocr
+        
+    return boxes_prob, numbers, mean_confidence_models
 ###########################ARTIFICIAL INTELLIGENCE###########################
 #Check if the number we want to put in a cell is a possible move
 def AvaliablePlace(num, nivell, sudoku):
@@ -545,3 +558,45 @@ def overlay_solution(img_c, sudoku_solution):
                 img_c[x+10:x+32+10,y+10:y+32+10,2] = zeros
                 
     return img_c
+
+
+#obtain the accuracy of the image comparing it to GT
+def get_accuracy(name, type_s, sudoku_m):
+    
+    sudoku_m_GT = np.load('figs/' + type_s + name + ' - GT.npy')
+    total_nums = 0
+    right = 0
+    
+    for x in range(len(sudoku_m_GT)):
+        for y in range(len(sudoku_m_GT[x])):
+            if sudoku_m_GT[x][y] != 0:
+                total_nums +=1
+                if sudoku_m_GT[x][y] == sudoku_m[x][y]:
+                    right += 1
+    
+    
+    return right/total_nums
+                
+            
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+

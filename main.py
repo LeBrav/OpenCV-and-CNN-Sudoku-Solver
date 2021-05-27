@@ -7,8 +7,8 @@ if __name__ == "__main__":
     model1 = load_model('models/digit_deta.h5') 
     model2 = load_model('models/mnist_model_toxo.h5') 
     
-    type_s = "Sudokus/digital_sudokus/" #handwritten  #digital_sudokus
-    name = "Captura (2)"
+    type_s = "Sudokus/handwritten/" #handwritten  #digital_sudokus
+    name = "Captura (1)"
     #######################################################################
     
     #read the image########################################################

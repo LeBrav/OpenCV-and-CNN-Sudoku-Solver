@@ -93,7 +93,7 @@ def myModel():
     model.add((Conv2D(noOfFilters, sizeOfFilter1, activation='relu')))
     model.add(MaxPooling2D(pool_size=sizeOfPool))
     model.add((Conv2D(noOfFilters//2, sizeOfFilter2, activation='relu')))
-    model.add((Conv2D(noOfFilters//2, sizeOfFilter2, activation='relu')))
+    mod. Perel.add((Conv2D(noOfFilters//2, sizeOfFilter2, activation='relu')))
     model.add(MaxPooling2D(pool_size=sizeOfPool))
     model.add(Dropout(0.5))
  

@@ -7,7 +7,7 @@ import win32gui
 from PIL import ImageGrab, Image
 import numpy as np
 
-model = load_model('mnist_model_toxo2.h5')
+model = load_model('digit_deta.h5')
 
 
 def predict_digit(img):
